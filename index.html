@@ -252,10 +252,16 @@
       <div class="auth-divider"><span></span><em>or</em><span></span></div>
 
       <label class="email-label">Email address</label>
-      <input id="authEmail" class="auth-input" placeholder="Enter your email address" />
-      <button id="emailDisabled" class="continue-btn">Continue</button>
+      <input id="authEmail" class="auth-input" type="email" placeholder="Enter your email address" />
 
-      <p class="auth-note">Email login is a placeholder for now. Use Google sign-in.</p>
+      <label class="email-label password-label">Password</label>
+      <input id="authPassword" class="auth-input" type="password" placeholder="Enter your password" />
+
+      <button id="emailContinue" class="continue-btn">Continue with Email</button>
+
+      <p class="auth-note">
+        New here? This will create your account automatically. Already have one? It will sign you in.
+      </p>
       <div class="auth-footer">
         <span>Secured by Firebase</span>
         <strong id="authModeNotice">Configuration required</strong>

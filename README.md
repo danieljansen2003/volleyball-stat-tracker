@@ -29,3 +29,17 @@ In Firebase Console:
 - Add your Vercel domain, for example `your-app.vercel.app`
 
 Then redeploy to Vercel.
+
+
+## Email/Password Sign-In
+
+This version supports email/password login.
+
+In Firebase Console:
+1. Go to Authentication.
+2. Open Sign-in method.
+3. Enable Email/Password.
+4. Save.
+
+The app will sign in existing email users, and create a new email account automatically if the user does not exist.
+Passwords must be at least 6 characters.

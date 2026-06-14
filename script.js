@@ -1,6 +1,6 @@
 import { firebaseConfig } from "./firebase-config.js";
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.5/firebase-app.js";
-import { getAuth, GoogleAuthProvider, signInWithPopup, signOut, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.12.5/firebase-auth.js";
+import { getAuth, GoogleAuthProvider, signInWithPopup, signOut, onAuthStateChanged, signInWithEmailAndPassword, createUserWithEmailAndPassword } from "https://www.gstatic.com/firebasejs/10.12.5/firebase-auth.js";
 import { getFirestore, doc, setDoc, getDoc, collection, getDocs, deleteDoc, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.12.5/firebase-firestore.js";
 
 let firebaseReady=false, auth=null, db=null, currentUser=null, cloudReady=false;
@@ -98,6 +98,46 @@ async function signInGoogle(){
   }
   await signInWithPopup(auth, new GoogleAuthProvider());
   closeAuthModal();
+}
+
+
+async function signInEmail(){
+  if(!firebaseReady) {
+    openAuthModal();
+    alert("Add Firebase config first.");
+    return;
+  }
+
+  const emailInput = document.getElementById("authEmail");
+  const passwordInput = document.getElementById("authPassword");
+  const email = (emailInput?.value || "").trim();
+  const password = passwordInput?.value || "";
+
+  if(!email || !password){
+    alert("Enter both email and password.");
+    return;
+  }
+
+  if(password.length < 6){
+    alert("Password must be at least 6 characters.");
+    return;
+  }
+
+  try{
+    await signInWithEmailAndPassword(auth, email, password);
+    closeAuthModal();
+  }catch(err){
+    if(err.code === "auth/user-not-found" || err.code === "auth/invalid-credential"){
+      try{
+        await createUserWithEmailAndPassword(auth, email, password);
+        closeAuthModal();
+      }catch(createErr){
+        alert(createErr.message);
+      }
+    }else{
+      alert(err.message);
+    }
+  }
 }
 
 async function signOutGoogle(){
@@ -496,7 +536,7 @@ document.body.addEventListener('click',e=>{
  if(e.target.id==='modalGoogleSignIn')signInGoogle();
  if(e.target.id==='closeAuthModal')closeAuthModal();
  if(e.target.id==='authModal')closeAuthModal();
- if(e.target.id==='emailDisabled')alert('Email login is not enabled yet. Use Continue with Google.');
+ if(e.target.id==='emailContinue')signInEmail();
  if(e.target.id==='googleSignIn')openAuthModal();
  if(e.target.id==='googleSignOut')signOutGoogle();
  const tab=e.target.closest('.tab');
@@ -557,3 +597,12 @@ document.body.addEventListener('input',e=>{
 $('heatType').addEventListener('change',renderHeatmap);$('heatPlayer').addEventListener('change',renderHeatmap);$('heatSet').addEventListener('change',renderHeatmap);$('statsSet').addEventListener('change',renderStats);
 $('importJson').addEventListener('change',e=>{let f=e.target.files[0];if(!f)return;let r=new FileReader();r.onload=()=>{state=JSON.parse(r.result);render()};r.readAsText(f)});
 render();
+
+document.addEventListener("keydown", e => {
+  if(e.key === "Enter" && !document.getElementById("authModal")?.classList.contains("hidden")){
+    const active = document.activeElement;
+    if(active && (active.id === "authEmail" || active.id === "authPassword")){
+      signInEmail();
+    }
+  }
+});

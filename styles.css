@@ -553,3 +553,15 @@ main{padding-top:60px}
 .auth-footer strong.ready{
   color:#21d07a;
 }
+
+
+/* Email/password auth update */
+.password-label{
+  margin-top:14px;
+}
+#emailContinue{
+  margin-top:22px;
+}
+.auth-note{
+  line-height:1.4;
+}
