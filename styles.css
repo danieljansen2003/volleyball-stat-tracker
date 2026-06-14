@@ -985,3 +985,35 @@ main{padding-top:60px}
 .heat-key .key{
   vertical-align:middle;
 }
+
+
+/* Final single NET fix */
+.net-label{
+  display:none!important;
+}
+#heatCourt.court::before,
+#modalCourt.court::before{
+  content:"NET"!important;
+  display:block!important;
+  position:absolute!important;
+  top:7%!important;
+  left:50%!important;
+  transform:translateX(-50%)!important;
+  color:rgba(74,163,255,.38)!important;
+  font-size:clamp(30px,5vw,76px)!important;
+  font-weight:1000!important;
+  letter-spacing:.08em!important;
+  pointer-events:none!important;
+  z-index:1!important;
+}
+#heatCourt.court::after,
+#modalCourt.court::after{
+  content:none!important;
+  display:none!important;
+}
+
+/* Cloud save status/button */
+#saveToCloudNow{
+  background:#1f6ed4;
+  color:#fff;
+}

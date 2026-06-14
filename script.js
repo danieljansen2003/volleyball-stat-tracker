@@ -38,22 +38,59 @@ function clearSignedOutView(){
 
 function cloudDoc(){return currentUser ? doc(db,"users",currentUser.uid,"app","current") : null}
 
+let saveTimer=null;
+function cacheKey(){
+  return currentUser ? `vb_current_${currentUser.uid}` : "vb_guest_current";
+}
+function markSaveStatus(text){
+  const el=document.getElementById("authStatus");
+  if(el && currentUser) el.textContent = `${text} Signed in as ${currentUser.email || currentUser.displayName}.`;
+}
 async function saveCloudState(){
-  if(!firebaseReady || !currentUser || !cloudReady) return;
+  if(!currentUser) return;
   try{
-    await setDoc(cloudDoc(), {state, updatedAt:serverTimestamp(), email:currentUser.email||""}, {merge:true});
-  }catch(e){console.error("Cloud save failed", e)}
+    localStorage.setItem(cacheKey(), JSON.stringify(state));
+    if(!firebaseReady) return;
+    await setDoc(cloudDoc(), {
+      state,
+      updatedAt:serverTimestamp(),
+      email:currentUser.email||"",
+      displayName:currentUser.displayName||""
+    }, {merge:true});
+    markSaveStatus("Saved to cloud.");
+  }catch(e){
+    console.error("Cloud save failed", e);
+    markSaveStatus("Cloud save failed.");
+  }
+}
+function scheduleCloudSave(){
+  if(!currentUser) return;
+  clearTimeout(saveTimer);
+  saveTimer=setTimeout(()=>saveCloudState(), 500);
 }
 
 async function loadCloudState(){
-  if(!firebaseReady || !currentUser) return false;
-  const snap=await getDoc(cloudDoc());
-  if(snap.exists() && snap.data().state){
-    state=snap.data().state;
+  if(!currentUser) return false;
+
+  if(firebaseReady){
+    const snap=await getDoc(cloudDoc());
+    if(snap.exists() && snap.data().state){
+      state=snap.data().state;
+      if(!state.digs) state.digs=[];
+      localStorage.setItem(cacheKey(), JSON.stringify(state));
+      localStorage.setItem("vb_v5", JSON.stringify(state));
+      return true;
+    }
+  }
+
+  const cached=localStorage.getItem(cacheKey());
+  if(cached){
+    state=JSON.parse(cached);
     if(!state.digs) state.digs=[];
-    localStorage.setItem("vb_v5", JSON.stringify(state));
+    await saveCloudState();
     return true;
   }
+
   return false;
 }
 
@@ -107,22 +144,26 @@ function updateAuthUI(){
   const status=document.getElementById("authStatus");
   const signIn=document.getElementById("googleSignIn");
   const signOutBtn=document.getElementById("googleSignOut");
+  const saveBtn=document.getElementById("saveToCloudNow");
   if(!status || !signIn || !signOutBtn) return;
   if(!firebaseReady){
     status.textContent="Firebase config needed. Edit firebase-config.js, then redeploy.";
     signIn.disabled=true;
     signOutBtn.style.display="none";
+    if(saveBtn) saveBtn.style.display="none";
     return;
   }
   if(currentUser){
     status.textContent=`Signed in as ${currentUser.email || currentUser.displayName}. Cloud sync is on.`;
     signIn.style.display="none";
     signOutBtn.style.display="inline-block";
+    if(saveBtn) saveBtn.style.display="inline-block";
   }else{
     status.textContent="Not signed in. Click sign in to open the login popup.";
     signIn.style.display="inline-block";
     signIn.disabled=false;
     signOutBtn.style.display="none";
+    if(saveBtn) saveBtn.style.display="none";
   }
 }
 
@@ -185,11 +226,12 @@ if(firebaseReady){
     currentUser=user;
     updateAuthUI();
     if(user){
-      const loaded=await loadCloudState();
       cloudReady=true;
+      const loaded=await loadCloudState();
       if(!loaded) await saveCloudState();
       render();
     }else{
+      if(saveTimer) clearTimeout(saveTimer);
       cloudReady=false;
       clearSignedOutView();
       render();
@@ -281,7 +323,13 @@ function newBlankMatch(){
  };
 }
 
-function save(){if(!state.digs)state.digs=[];localStorage.setItem('vb_v5',JSON.stringify(state)); saveCloudState()}
+function save(){
+ localStorage.setItem('vb_v5',JSON.stringify(state));
+ if(currentUser){
+   localStorage.setItem(cacheKey(), JSON.stringify(state));
+   scheduleCloudSave();
+ }
+}
 function currentSet(){return state.sets[state.sets.length-1]}
 function player(){return state.roster[state.selected]}
 function initials(n){return (n||'?').split(' ').map(x=>x[0]).join('').slice(0,2).toUpperCase()}
@@ -491,7 +539,7 @@ function attackClass(type){
 function renderCourtZones(){
  const courts=[document.getElementById('heatCourt'),document.getElementById('modalCourt')].filter(Boolean);
  courts.forEach(court=>{
-   court.querySelectorAll('.zone-label,.net-label').forEach(el=>el.remove());
+   court.querySelectorAll('.zone-label').forEach(el=>el.remove());
 
    // Standard 6-zone volleyball court layout, one full court:
    // Top row near the net: 4 - 3 - 2
@@ -509,11 +557,6 @@ function renderCourtZones(){
     el.style.top=(y*100)+'%';
     court.appendChild(el);
    });
-
-   const net=document.createElement('span');
-   net.className='net-label';
-   net.textContent='NET';
-   court.appendChild(net);
  });
 }
 
@@ -604,6 +647,7 @@ function removeEvent(ev){
 }
 function editAttack(id){editingAttackId=id;let a=state.attacks.find(x=>x.id===id)||((state.digs||[]).find(x=>x.id===id));if(!a)return;let options=(a.type==='dig'||a.type==='digError')?[['dig','Dig'],['digError','Error']]:statTypes.attack;$('editResult').innerHTML=options.map(([t,l])=>`<option value="${t}">${l}</option>`).join('');$('editResult').value=a.type;$('editSet').innerHTML=state.sets.map(s=>`<option value="${s.set}">Set ${s.set}</option>`).join('');$('editSet').value=a.set;$('editModal').classList.remove('hidden')}
 document.body.addEventListener('click',e=>{
+ if(e.target.id==='saveToCloudNow')saveCloudState();
  if(e.target.id==='startTracking')hideEntryScreen();
  if(e.target.id==='entryLogin')openAuthModal();
  if(e.target.id==='entryGoogleLogin')openAuthModal();
