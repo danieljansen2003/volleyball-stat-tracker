@@ -25,6 +25,17 @@ function showEntryScreen(){
   if(entry) entry.classList.remove("hidden");
 }
 
+
+function signedOutBlankState(){
+  const baseRoster=[['Joe','OH'],['Bob','MB'],['Mary','S'],['Jill','L'],['Sy','OH'],['Hurbert','MB'],['Jack','RS'],['Player 8',''],['Player 9',''],['Player 10',''],['Player 11','']];
+  return {team:'US',opp:'THEM',selected:0,set:1,score:{us:0,them:0},activeSetView:'all',roster:baseRoster.map((p,i)=>({id:String(i+1),name:p[0],pos:p[1],stats:blank()})),sets:[{set:1,us:0,them:0,events:[]}],attacks:[],digs:[],matchNotes:''};
+}
+function clearSignedOutView(){
+  state=signedOutBlankState();
+  localStorage.removeItem("vb_v5");
+  localStorage.removeItem("vb_saved_games");
+}
+
 function cloudDoc(){return currentUser ? doc(db,"users",currentUser.uid,"app","current") : null}
 
 async function saveCloudState(){
@@ -180,6 +191,7 @@ if(firebaseReady){
       render();
     }else{
       cloudReady=false;
+      clearSignedOutView();
       render();
     }
   });
@@ -238,11 +250,17 @@ function redoLast(){
 
 let editingGameIndex=null;
 
-function savedGames(){return JSON.parse(localStorage.getItem('vb_saved_games')||'[]')}
-function setSavedGames(games){localStorage.setItem('vb_saved_games',JSON.stringify(games))}
+function savedGames(){
+ const key=currentUser ? `vb_saved_games_${currentUser.uid}` : null;
+ return key ? JSON.parse(localStorage.getItem(key)||'[]') : [];
+}
+function setSavedGames(games){
+ if(!currentUser) return;
+ localStorage.setItem(`vb_saved_games_${currentUser.uid}`, JSON.stringify(games));
+}
 function archiveCurrentGame(){
  const hasEvents=state.sets.some(s=>s.events.length)||state.score.us||state.score.them||state.attacks.length;
- if(!hasEvents)return;
+ if(!hasEvents || !currentUser)return;
  const games=savedGames();
  const stamp=new Date().toLocaleString();
  games.unshift({
@@ -319,7 +337,7 @@ function logEvent(type, attackMeta=null){
  }
  save(); render();
 }
-function openCourt(type){pending={type,playerId:player().id,id:crypto.randomUUID?crypto.randomUUID():Date.now()+''};$('modalTitle').textContent=`${labels[type]} — place on court`;$('modalSub').textContent=(type==='dig'||type==='digError')?'Click where the dig happened':'Click where the ball landed';$('modal').classList.remove('hidden')}
+function openCourt(type){pending={type,playerId:player().id,id:crypto.randomUUID?crypto.randomUUID():Date.now()+''};$('modalTitle').textContent=`${labels[type]} — place on court`;$('modalSub').textContent=(type==='dig'||type==='digError')?'Click where the dig happened':'Click where the ball landed';$('modal').classList.remove('hidden'); renderCourtZones()}
 function chooseSub(menu){
  $('subActions').innerHTML=statTypes[menu].map(([type,label,color,needsCourt])=>`<button class="${color}" data-log="${type}" data-court="${needsCourt}">${label}</button>`).join('');
 }
@@ -469,8 +487,26 @@ function attackClass(type){
  if(type==='dig') return 'dig';
  return 'attempt';
 }
+
+function renderCourtZones(){
+ const courts=[document.getElementById('heatCourt'),document.getElementById('modalCourt')].filter(Boolean);
+ courts.forEach(court=>{
+   if(court.querySelector('.zone-label')) return;
+   const zones=[['5',.125,.25],['6',.375,.25],['6',.625,.25],['5',.875,.25],['4',.125,.75],['3',.375,.75],['3',.625,.75],['4',.875,.75]];
+   zones.forEach(([label,x,y])=>{
+    const el=document.createElement('span');
+    el.className='zone-label';
+    el.textContent=label;
+    el.style.left=(x*100)+'%';
+    el.style.top=(y*100)+'%';
+    court.appendChild(el);
+   });
+ });
+}
+
 function renderHeatmap(){
  let court=$('heatCourt'); if(!court)return;
+ renderCourtZones();
  [...court.querySelectorAll('.dot,.heat-spot')].forEach(d=>d.remove());
  const mode=heatMode();
  $('heatTitle').textContent=mode==='dig'?'Dig Heatmap':'Attack Heatmap';
@@ -529,6 +565,7 @@ function renderRoster(){
 }
 async function renderSavedGames(){
  const box=$('savedGamesList'); if(!box)return;
+ if(!currentUser){box.innerHTML='<p class="muted">Sign in to view saved games for your account.</p>';return;}
  let games=savedGames();
  if(firebaseReady && currentUser){
    try{
@@ -541,12 +578,8 @@ async function renderSavedGames(){
  }
  box.innerHTML=games.length?games.map((g,i)=>`<div class="saved-game-row">
   <strong>${escapeHtml(g.name)}</strong>
-  <span>${new Date(g.savedAt).toLocaleString()}${currentUser?' · cloud':''}</span>
-  <div>
-    <button data-load-game="${i}">Load</button>
-    <button data-rename-game="${i}">Rename</button>
-    <button class="danger-btn" data-delete-game="${i}">Delete</button>
-  </div>
+  <span>${new Date(g.savedAt).toLocaleString()} · cloud</span>
+  <div><button data-load-game="${i}">Load</button><button data-rename-game="${i}">Rename</button><button class="danger-btn" data-delete-game="${i}">Delete</button></div>
  </div>`).join(''):'<p class="muted">No saved games yet.</p>';
 }
 function renderSetup(){$('teamName').value=state.team;$('oppName').value=state.opp;$('matchNotes').value=state.matchNotes||'';renderSavedGames()}

@@ -865,3 +865,50 @@ main{padding-top:60px}
     align-items:flex-start;
   }
 }
+
+
+/* Per-user saved games + corrected heatmap court zones */
+.court{
+  background:
+    linear-gradient(90deg,
+      transparent 0 calc(25% - 1px), rgba(74,163,255,.28) calc(25% - 1px) calc(25% + 1px), transparent calc(25% + 1px) calc(50% - 2px),
+      rgba(74,163,255,.62) calc(50% - 2px) calc(50% + 2px), transparent calc(50% + 2px) calc(75% - 1px),
+      rgba(74,163,255,.28) calc(75% - 1px) calc(75% + 1px), transparent calc(75% + 1px) 100%),
+    linear-gradient(0deg,transparent 0 calc(50% - 2px),rgba(74,163,255,.42) calc(50% - 2px) calc(50% + 2px),transparent calc(50% + 2px) 100%),
+    linear-gradient(180deg,#123574,#08172a)!important;
+}
+.court:before{
+  content:"NET";
+  position:absolute;
+  top:7%;
+  left:50%;
+  transform:translateX(-50%);
+  font-size:clamp(28px,4.5vw,72px);
+  font-weight:900;
+  letter-spacing:.06em;
+  color:rgba(74,163,255,.38);
+  z-index:0;
+}
+.court:after{
+  content:"";
+  position:absolute;
+  top:0;
+  bottom:0;
+  left:50%;
+  width:4px;
+  transform:translateX(-50%);
+  background:rgba(74,163,255,.42);
+  box-shadow:0 0 18px rgba(74,163,255,.55);
+  z-index:0;
+}
+.zone-label{
+  position:absolute;
+  transform:translate(-50%,-50%);
+  color:rgba(255,255,255,.12);
+  font-weight:1000;
+  font-size:clamp(24px,4vw,58px);
+  pointer-events:none;
+  z-index:0;
+}
+#modalCourt .zone-label{font-size:22px;color:rgba(255,255,255,.16)}
+#heatCourt .heat-spot,#heatCourt .dot,#modalCourt .dot{z-index:4}
