@@ -7,6 +7,70 @@
   <link rel="stylesheet" href="styles.css"/>
 </head>
 <body>
+
+  <section id="entryScreen" class="entry-screen">
+    <div class="entry-bg-court">
+      <div class="entry-net"></div>
+      <div class="entry-ball ball-one"></div>
+      <div class="entry-ball ball-two"></div>
+      <div class="entry-ball ball-three"></div>
+    </div>
+
+    <div class="entry-shell">
+      <header class="entry-header">
+        <div class="entry-brand">
+          <div class="entry-logo">VB</div>
+          <div>
+            <strong>Volleyball Stat Tracker</strong>
+            <span>Track • Analyze • Improve</span>
+          </div>
+        </div>
+        <button id="entryLogin" class="entry-login-btn">Log In</button>
+      </header>
+
+      <div class="entry-hero">
+        <div class="entry-copy">
+          <div class="entry-kicker">Match-ready analytics</div>
+          <h1>Track every rally like a pro.</h1>
+          <p>Score matches, log kills, blocks, digs, serves, reception ratings, and build heatmaps from one clean volleyball dashboard.</p>
+
+          <div class="entry-actions">
+            <button id="startTracking" class="entry-primary">Start Tracking</button>
+            <button id="entryGoogleLogin" class="entry-secondary">Sign in to Sync</button>
+          </div>
+
+          <div class="entry-stats">
+            <div><strong>6</strong><span>Skill Groups</span></div>
+            <div><strong>2</strong><span>Heatmaps</span></div>
+            <div><strong>CSV</strong><span>Exports</span></div>
+          </div>
+        </div>
+
+        <div class="entry-preview">
+          <div class="preview-top">
+            <span>LIVE MATCH</span>
+            <strong>SET 1</strong>
+          </div>
+          <div class="preview-score">
+            <div><span>US</span><strong>18</strong></div>
+            <div><span>THEM</span><strong>14</strong></div>
+          </div>
+          <div class="preview-actions">
+            <span>Attack</span><span>Block</span><span>Dig</span>
+          </div>
+          <div class="preview-heat">
+            <i></i><i></i><i></i>
+          </div>
+          <div class="preview-bars">
+            <b style="width:88%"></b>
+            <b style="width:62%"></b>
+            <b style="width:74%"></b>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
   <nav class="tabs">
     <button class="tab active" data-page="track">Track</button>
     <button class="tab" data-page="heatmap">Heatmap</button>

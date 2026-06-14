@@ -14,6 +14,17 @@ try{
   }
 }catch(e){console.warn("Firebase config needed", e)}
 
+
+function hideEntryScreen(){
+  const entry=document.getElementById("entryScreen");
+  if(entry) entry.classList.add("hidden");
+  localStorage.setItem("vb_entry_seen","yes");
+}
+function showEntryScreen(){
+  const entry=document.getElementById("entryScreen");
+  if(entry) entry.classList.remove("hidden");
+}
+
 function cloudDoc(){return currentUser ? doc(db,"users",currentUser.uid,"app","current") : null}
 
 async function saveCloudState(){
@@ -65,6 +76,20 @@ function openAuthModal(){
 function closeAuthModal(){
   const modal=document.getElementById("authModal");
   if(modal) modal.classList.add("hidden");
+}
+
+
+function updateEntryAuthUI(){
+  const btn=document.getElementById("entryLogin");
+  const syncBtn=document.getElementById("entryGoogleLogin");
+  if(!btn || !syncBtn) return;
+  if(currentUser){
+    btn.textContent="Signed In";
+    syncBtn.textContent="Continue";
+  }else{
+    btn.textContent="Log In";
+    syncBtn.textContent="Sign in to Sync";
+  }
 }
 
 function updateAuthUI(){
@@ -298,7 +323,7 @@ function openCourt(type){pending={type,playerId:player().id,id:crypto.randomUUID
 function chooseSub(menu){
  $('subActions').innerHTML=statTypes[menu].map(([type,label,color,needsCourt])=>`<button class="${color}" data-log="${type}" data-court="${needsCourt}">${label}</button>`).join('');
 }
-function render(){ if(!state.digs)state.digs=[]; updateAuthUI(); 
+function render(){ if(!state.digs)state.digs=[]; updateAuthUI(); updateEntryAuthUI(); 
  $('teamLabel').textContent=state.team;$('oppLabel').textContent=state.opp;$('usScore').textContent=state.score.us;$('themScore').textContent=state.score.them;$('setNumber').textContent=state.set;
  renderPlayers(); renderSelected(); renderTeamMetrics(); renderSummary(); renderDonut(); drawRadar(); renderCorrectionPanel(); renderHeatFilters(); renderHeatmap(); renderStats(); renderSets(); renderRoster(); renderSetup(); save();
 }
@@ -533,6 +558,9 @@ function removeEvent(ev){
 }
 function editAttack(id){editingAttackId=id;let a=state.attacks.find(x=>x.id===id)||((state.digs||[]).find(x=>x.id===id));if(!a)return;let options=(a.type==='dig'||a.type==='digError')?[['dig','Dig'],['digError','Error']]:statTypes.attack;$('editResult').innerHTML=options.map(([t,l])=>`<option value="${t}">${l}</option>`).join('');$('editResult').value=a.type;$('editSet').innerHTML=state.sets.map(s=>`<option value="${s.set}">Set ${s.set}</option>`).join('');$('editSet').value=a.set;$('editModal').classList.remove('hidden')}
 document.body.addEventListener('click',e=>{
+ if(e.target.id==='startTracking')hideEntryScreen();
+ if(e.target.id==='entryLogin')openAuthModal();
+ if(e.target.id==='entryGoogleLogin')openAuthModal();
  if(e.target.id==='modalGoogleSignIn')signInGoogle();
  if(e.target.id==='closeAuthModal')closeAuthModal();
  if(e.target.id==='authModal')closeAuthModal();
