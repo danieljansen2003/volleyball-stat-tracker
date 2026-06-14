@@ -491,8 +491,16 @@ function attackClass(type){
 function renderCourtZones(){
  const courts=[document.getElementById('heatCourt'),document.getElementById('modalCourt')].filter(Boolean);
  courts.forEach(court=>{
-   if(court.querySelector('.zone-label')) return;
-   const zones=[['5',.125,.25],['6',.375,.25],['6',.625,.25],['5',.875,.25],['4',.125,.75],['3',.375,.75],['3',.625,.75],['4',.875,.75]];
+   court.querySelectorAll('.zone-label,.net-label').forEach(el=>el.remove());
+
+   // Standard 6-zone volleyball court layout, one full court:
+   // Top row near the net: 4 - 3 - 2
+   // Back row: 5 - 6 - 1
+   const zones=[
+    ['4',1/6,1/4],['3',1/2,1/4],['2',5/6,1/4],
+    ['5',1/6,3/4],['6',1/2,3/4],['1',5/6,3/4]
+   ];
+
    zones.forEach(([label,x,y])=>{
     const el=document.createElement('span');
     el.className='zone-label';
@@ -501,6 +509,11 @@ function renderCourtZones(){
     el.style.top=(y*100)+'%';
     court.appendChild(el);
    });
+
+   const net=document.createElement('span');
+   net.className='net-label';
+   net.textContent='NET';
+   court.appendChild(net);
  });
 }
 

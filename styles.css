@@ -912,3 +912,76 @@ main{padding-top:60px}
 }
 #modalCourt .zone-label{font-size:22px;color:rgba(255,255,255,.16)}
 #heatCourt .heat-spot,#heatCourt .dot,#modalCourt .dot{z-index:4}
+
+
+/* Clean single-court heatmap fix */
+#heatCourt.court,
+#modalCourt.court{
+  position:relative;
+  overflow:hidden;
+  background:
+    linear-gradient(90deg,
+      transparent 0 calc(33.333% - 1.5px),
+      rgba(74,163,255,.35) calc(33.333% - 1.5px) calc(33.333% + 1.5px),
+      transparent calc(33.333% + 1.5px) calc(66.666% - 1.5px),
+      rgba(74,163,255,.35) calc(66.666% - 1.5px) calc(66.666% + 1.5px),
+      transparent calc(66.666% + 1.5px) 100%),
+    linear-gradient(0deg,
+      transparent 0 calc(50% - 2px),
+      rgba(74,163,255,.45) calc(50% - 2px) calc(50% + 2px),
+      transparent calc(50% + 2px) 100%),
+    linear-gradient(180deg,#123574 0%,#0b2a58 44%,#08172a 100%) !important;
+}
+
+/* Turn off the older pseudo overlays that were creating the second/underneath court and extra NET */
+#heatCourt.court::before,
+#heatCourt.court::after,
+#modalCourt.court::before,
+#modalCourt.court::after{
+  content:none !important;
+  display:none !important;
+}
+
+/* One clear net label only */
+.net-label{
+  position:absolute;
+  top:7%;
+  left:50%;
+  transform:translateX(-50%);
+  color:rgba(74,163,255,.38);
+  font-size:clamp(30px,5vw,76px);
+  font-weight:1000;
+  letter-spacing:.08em;
+  pointer-events:none;
+  z-index:1;
+}
+
+/* One set of zone numbers only: 1 through 6 */
+.zone-label{
+  position:absolute;
+  transform:translate(-50%,-50%);
+  color:rgba(255,255,255,.16);
+  font-weight:1000;
+  font-size:clamp(34px,5vw,76px);
+  pointer-events:none;
+  z-index:1;
+}
+
+/* Keep heat blobs and dots above the clean court lines/numbers */
+#heatCourt .heat-spot,
+#modalCourt .heat-spot{
+  z-index:2 !important;
+}
+#heatCourt .dot,
+#modalCourt .dot{
+  z-index:3 !important;
+}
+#modalCourt .net-label{font-size:24px}
+#modalCourt .zone-label{font-size:22px}
+
+.heat-key{
+  line-height:1.8;
+}
+.heat-key .key{
+  vertical-align:middle;
+}
