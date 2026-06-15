@@ -1017,3 +1017,70 @@ main{padding-top:60px}
   background:#1f6ed4;
   color:#fff;
 }
+
+
+/* FINAL heatmap cleanup: one court, one NET, no duplicate background court */
+#heatCourt.court,
+#modalCourt.court{
+  position:relative!important;
+  overflow:hidden!important;
+  background:
+    linear-gradient(90deg,
+      transparent 0 calc(33.333% - 1.5px),
+      rgba(74,163,255,.38) calc(33.333% - 1.5px) calc(33.333% + 1.5px),
+      transparent calc(33.333% + 1.5px) calc(66.666% - 1.5px),
+      rgba(74,163,255,.38) calc(66.666% - 1.5px) calc(66.666% + 1.5px),
+      transparent calc(66.666% + 1.5px) 100%),
+    linear-gradient(0deg,
+      transparent 0 calc(50% - 2px),
+      rgba(74,163,255,.48) calc(50% - 2px) calc(50% + 2px),
+      transparent calc(50% + 2px) 100%),
+    linear-gradient(180deg,#143a7a 0%,#0b2a58 45%,#061426 100%)!important;
+  background-size:100% 100%!important;
+}
+
+/* Kill every older court pseudo element that made a second court and second NET */
+#heatCourt.court::before,
+#heatCourt.court::after,
+#modalCourt.court::before,
+#modalCourt.court::after{
+  content:none!important;
+  display:none!important;
+  opacity:0!important;
+}
+
+/* Draw only the JS-created labels */
+#heatCourt .net-label,
+#modalCourt .net-label{
+  display:block!important;
+  position:absolute!important;
+  top:7%!important;
+  left:50%!important;
+  transform:translateX(-50%)!important;
+  color:rgba(74,163,255,.38)!important;
+  font-size:clamp(30px,5vw,76px)!important;
+  font-weight:1000!important;
+  letter-spacing:.08em!important;
+  pointer-events:none!important;
+  z-index:1!important;
+}
+
+#heatCourt .zone-label,
+#modalCourt .zone-label{
+  display:block!important;
+  position:absolute!important;
+  transform:translate(-50%,-50%)!important;
+  color:rgba(255,255,255,.16)!important;
+  font-weight:1000!important;
+  font-size:clamp(34px,5vw,76px)!important;
+  pointer-events:none!important;
+  z-index:1!important;
+}
+
+#modalCourt .net-label{font-size:24px!important}
+#modalCourt .zone-label{font-size:22px!important}
+
+#heatCourt .heat-spot,
+#modalCourt .heat-spot{z-index:2!important}
+#heatCourt .dot,
+#modalCourt .dot{z-index:3!important}
