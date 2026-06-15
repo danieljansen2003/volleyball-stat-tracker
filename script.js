@@ -558,11 +558,13 @@ function attackClass(type){
 function renderCourtZones(){
  const courts=[document.getElementById('heatCourt'), document.getElementById('modalCourt')].filter(Boolean);
  courts.forEach(court=>{
-   court.querySelectorAll('.zone-label,.net-label,.court-artifact').forEach(el=>el.remove());
+   court.querySelectorAll('.zone-label,.net-label,.court-artifact,.attack-line,.center-line,.court-overlay').forEach(el=>el.remove());
+
    const zones=[
     ['4', 1/6, 1/4], ['3', 1/2, 1/4], ['2', 5/6, 1/4],
     ['5', 1/6, 3/4], ['6', 1/2, 3/4], ['1', 5/6, 3/4]
    ];
+
    zones.forEach(([label,x,y])=>{
     const el=document.createElement('span');
     el.className='zone-label';
