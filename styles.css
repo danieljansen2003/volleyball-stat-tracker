@@ -1084,3 +1084,44 @@ main{padding-top:60px}
 #modalCourt .heat-spot{z-index:2!important}
 #heatCourt .dot,
 #modalCourt .dot{z-index:3!important}
+
+
+/* ABSOLUTE FINAL NET/Court override */
+#heatCourt .net-label,
+#modalCourt .net-label,
+.net-label{
+  display:none!important;
+  opacity:0!important;
+  visibility:hidden!important;
+}
+
+#heatCourt.court::before,
+#modalCourt.court::before{
+  content:"NET"!important;
+  display:block!important;
+  position:absolute!important;
+  top:7%!important;
+  left:50%!important;
+  transform:translateX(-50%)!important;
+  color:rgba(74,163,255,.38)!important;
+  font-size:clamp(30px,5vw,76px)!important;
+  font-weight:1000!important;
+  letter-spacing:.08em!important;
+  pointer-events:none!important;
+  z-index:1!important;
+  opacity:1!important;
+  visibility:visible!important;
+}
+
+#heatCourt.court::after,
+#modalCourt.court::after{
+  content:none!important;
+  display:none!important;
+  opacity:0!important;
+  visibility:hidden!important;
+}
+
+#heatCourt .court-artifact,
+#modalCourt .court-artifact{
+  display:none!important;
+}

@@ -95,7 +95,14 @@ async function loadCloudState(){
 }
 
 async function saveCloudGame(game){
-  if(!firebaseReady || !currentUser || !game) return;
+  if(!currentUser || !game) return;
+  try{
+    const games=savedGames();
+    const map=new Map(games.map(g=>[g.id,g]));
+    map.set(game.id, game);
+    setSavedGames([...map.values()].sort((a,b)=>(b.savedAt||0)-(a.savedAt||0)));
+  }catch(e){}
+  if(!firebaseReady) return;
   try{await setDoc(doc(db,"users",currentUser.uid,"savedGames",game.id), {...game, updatedAt:serverTimestamp()});}
   catch(e){console.error("Cloud game save failed", e)}
 }
@@ -227,9 +234,18 @@ if(firebaseReady){
     updateAuthUI();
     if(user){
       cloudReady=true;
-      const loaded=await loadCloudState();
-      if(!loaded) await saveCloudState();
+      const cached=localStorage.getItem(cacheKey());
+      if(cached){
+        try{
+          state=JSON.parse(cached);
+          if(!state.digs) state.digs=[];
+        }catch(e){}
+      }
       render();
+      loadCloudState().then(loaded=>{
+        if(!loaded) return saveCloudState();
+        render();
+      }).catch(e=>console.warn("Cloud load failed", e));
     }else{
       if(saveTimer) clearTimeout(saveTimer);
       cloudReady=false;
@@ -543,19 +559,10 @@ function renderCourtZones(){
  const courts=[document.getElementById('heatCourt'), document.getElementById('modalCourt')].filter(Boolean);
  courts.forEach(court=>{
    court.querySelectorAll('.zone-label,.net-label,.court-artifact').forEach(el=>el.remove());
-
-   // One correct volleyball 6-zone court:
-   // Front row near net: 4 - 3 - 2
-   // Back row: 5 - 6 - 1
    const zones=[
-    ['4', 1/6, 1/4],
-    ['3', 1/2, 1/4],
-    ['2', 5/6, 1/4],
-    ['5', 1/6, 3/4],
-    ['6', 1/2, 3/4],
-    ['1', 5/6, 3/4]
+    ['4', 1/6, 1/4], ['3', 1/2, 1/4], ['2', 5/6, 1/4],
+    ['5', 1/6, 3/4], ['6', 1/2, 3/4], ['1', 5/6, 3/4]
    ];
-
    zones.forEach(([label,x,y])=>{
     const el=document.createElement('span');
     el.className='zone-label';
@@ -564,11 +571,6 @@ function renderCourtZones(){
     el.style.top=(y*100)+'%';
     court.appendChild(el);
    });
-
-   const net=document.createElement('span');
-   net.className='net-label';
-   net.textContent='NET';
-   court.appendChild(net);
  });
 }
 
@@ -639,20 +641,19 @@ async function renderSavedGames(){
  }
 
  const draw=(games,loading=false)=>{
-   box.innerHTML = (loading?'<p class="muted">Loading cloud games...</p>':'') + 
-   (games.length?games.map((g,i)=>`<div class="saved-game-row">
-    <strong>${escapeHtml(g.name)}</strong>
-    <span>${new Date(g.savedAt).toLocaleString()} · cloud</span>
-    <div>
-      <button data-load-game="${i}">Load</button>
-      <button data-rename-game="${i}">Rename</button>
-      <button class="danger-btn" data-delete-game="${i}">Delete</button>
-    </div>
-   </div>`).join(''):(loading?'':'<p class="muted">No saved games yet.</p>'));
+   box.innerHTML = games.length ? games.map((g,i)=>`<div class="saved-game-row">
+      <strong>${escapeHtml(g.name)}</strong>
+      <span>${new Date(g.savedAt).toLocaleString()} · cloud</span>
+      <div>
+        <button data-load-game="${i}">Load</button>
+        <button data-rename-game="${i}">Rename</button>
+        <button class="danger-btn" data-delete-game="${i}">Delete</button>
+      </div>
+    </div>`).join('') : `<p class="muted">${loading?'Loading saved games...':'No saved games yet.'}</p>`;
  };
 
  let games=savedGames();
- draw(games, firebaseReady && currentUser && games.length===0);
+ draw(games, firebaseReady && games.length===0);
 
  if(firebaseReady && currentUser){
    loadCloudGames().then(cloudGames=>{
